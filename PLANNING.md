@@ -24,3 +24,79 @@ Details for Requirements, API Design, Data Model, Low-level Design for overall p
 * Local execution only (no Docker, no CI, no cloud setup).
 
 ---
+
+## 2. API Design
+
+`GET /api/users` : `User[]`
+List users for the active-user switcher.
+
+`GET /api/tmdb/search?q=` : `TMDBResponse`
+Search TMDB by title; `q` required.
+
+`GET /api/tmdb/movie/:id` : `TMDBMovieDetails`
+Full details for one TMDB movie.
+
+`GET /api/collections` : `Collection[]`
+List collections owned by the active user (`x-user-id` header, defaults to 1), each with a `movie_count`.
+
+`POST /api/collections` : `Collection` (201)
+Create a collection; `name` required.
+
+`GET /api/collections/:id` : `Collection & { stats: CollectionStats | null, movies: Movie[] }`
+One collection with its movies.
+
+`DELETE /api/collections/:id` : `204`
+Delete a collection; cascades to its movies.
+
+`POST /api/collections/:id/movies` : `Movie` (201)
+Add a movie to a collection; `409` if already present.
+
+`PATCH /api/movies/:id` : `Movie`
+Update `watched`, `user_notes`, `user_rating`, or `tags`.
+
+`DELETE /api/movies/:id` : `204`
+Remove a movie from its collection.
+
+---
+
+## 4. Data Model
+
+### users
+
+| Column | Type | Constraints |
+| --- | --- | --- |
+| id | INTEGER | PK, autoincrement |
+| username | TEXT | NOT NULL, UNIQUE |
+| email | TEXT | NOT NULL, UNIQUE |
+
+### collections
+
+| Column | Type | Constraints |
+| --- | --- | --- |
+| id | INTEGER | PK, autoincrement |
+| name | TEXT | NOT NULL |
+| description | TEXT | nullable |
+| created_by | INTEGER | NOT NULL, default 1, FK → users.id |
+| created_at | DATETIME | default CURRENT_TIMESTAMP |
+
+### movies
+
+| Column | Type | Constraints |
+| --- | --- | --- |
+| id | INTEGER | PK, autoincrement |
+| collection_id | INTEGER | NOT NULL, FK → collections.id (CASCADE) |
+| tmdb_id | INTEGER | NOT NULL |
+| title | TEXT | NOT NULL |
+| poster_path | TEXT | nullable |
+| release_date | TEXT | nullable |
+| runtime | INTEGER | default 0 |
+| vote_average | REAL | default 0 |
+| genres | TEXT | JSON array, default `'[]'` |
+| user_notes | TEXT | nullable |
+| user_rating | INTEGER | nullable, CHECK 1–5 |
+| tags | TEXT | JSON array, default `'[]'` |
+| watched | INTEGER | default 0 |
+
+`UNIQUE (collection_id, tmdb_id)`
+
+---

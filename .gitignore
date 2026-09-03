@@ -11,3 +11,8 @@ dist/
 
 # OS files
 .DS_Store
+
+# db files
+*.db
+*.db-wal
+*.db-shm
