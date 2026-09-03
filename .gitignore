@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+
+# Local Environment Secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
